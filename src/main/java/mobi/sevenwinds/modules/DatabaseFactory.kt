@@ -22,15 +22,34 @@ object DatabaseFactory {
 
         val flyway = Flyway.configure().dataSource(dbUrl, dbUser, dbPassword)
             .locations("classpath:db/migration")
-//            .baselineOnMigrate(true)
+            .baselineOnMigrate(true)
             .outOfOrder(true)
             .load()
 
-        if (appConfig.property("flyway.clean").getString().toBoolean()) {
-            flyway.clean() // clean existing tables before migration applying
-        }
+        try {
+            val shouldClean = appConfig.propertyOrNull("flyway.clean")?.getString()?.toBoolean() ?: false
 
-        flyway.migrate()
+            if (shouldClean) {
+                val cleanDisabled = Flyway.configure()
+                    .dataSource(dbUrl, dbUser, dbPassword)
+                    .load()
+                    .configuration
+                    .isCleanDisabled
+
+                if (cleanDisabled) {
+                    println("Warning: Database cleaning was requested but is globally disabled!")
+                } else {
+                    flyway.clean()
+                    println("Database cleaned successfully")
+                }
+            }
+
+            flyway.migrate()
+            println("Database migrated successfully")
+
+        } catch (e: Exception) {
+            throw IllegalStateException("Failed to initialize database", e)
+        }
     }
 
     fun hikari(): HikariDataSource {

@@ -2,8 +2,8 @@ package mobi.sevenwinds
 
 import com.fasterxml.jackson.databind.DeserializationFeature
 import com.fasterxml.jackson.databind.SerializationFeature
+import com.fasterxml.jackson.databind.exc.MismatchedInputException
 import com.fasterxml.jackson.datatype.jdk8.Jdk8Module
-import com.fasterxml.jackson.module.kotlin.MissingKotlinParameterException
 import com.papsign.ktor.openapigen.annotations.type.common.ConstraintViolation
 import com.papsign.ktor.openapigen.exceptions.OpenAPIRequiredFieldException
 import com.papsign.ktor.openapigen.route.apiRouting
@@ -85,7 +85,7 @@ fun Application.module() {
         exception<OpenAPIRequiredFieldException> { cause ->
             call.respond(HttpStatusCode.BadRequest, cause.message ?: "")
         }
-        exception<MissingKotlinParameterException> { cause ->
+        exception<MismatchedInputException> { cause ->
             call.respond(HttpStatusCode.BadRequest, cause.message ?: "")
         }
         exception<ConstraintViolation> { cause ->
